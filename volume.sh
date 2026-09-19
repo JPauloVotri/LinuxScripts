@@ -4,16 +4,6 @@ STEP=5
 MAX_VOLUME=100
 MSG_ID="991049"
 
-detect_notifier() {
-    if command -v dunstify &> /dev/null; then
-        NOTIFY_CMD="dunstify"
-        USE_DUNSTIFY=true
-    else
-        NOTIFY_CMD="notify-send"
-        USE_DUNSTIFY=false
-    fi
-}
-
 get_volume_info() {
     local SINK_INFO=$(pactl get-sink-volume @DEFAULT_SINK@)
     local MUTE_STATUS=$(pactl get-sink-mute @DEFAULT_SINK@)
@@ -45,17 +35,8 @@ show_volume_notification() {
         TEXT="Volume: ${VOLUME}%"
     fi
 
-    if [ "$USE_DUNSTIFY" = true ]; then
-        $NOTIFY_CMD -a "Volume" -u low -i "$ICON" -r "$MSG_ID" -t 1000 \
-            -h int:value:"$VOLUME" "$TEXT"
-    else
-        if $NOTIFY_CMD --help 2>&1 | grep -q -- "--replace-id"; then
-            $NOTIFY_CMD -a "Volume" -u low -i "$ICON" --replace-id="$MSG_ID" -t 1000 \
-                "$TEXT"
-        else
-            $NOTIFY_CMD -a "Volume" -u low -i "$ICON" -t 1000 "$TEXT"
-        fi
-    fi
+    notify-send -a "Volume" -u low -i "$ICON" -h int:value:"$VOLUME" \
+        -r "$MSG_ID" -t 1000 "$TEXT"
 }
 
 if [ "$2" = "high" ]; then
@@ -63,8 +44,6 @@ if [ "$2" = "high" ]; then
 else
     INCREMENT=$STEP
 fi
-
-detect_notifier
 
 case "$1" in
     up)
